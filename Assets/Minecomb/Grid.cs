@@ -33,21 +33,34 @@ namespace Minecomb
         public int Columns { get; private set; }
 
         public int CellCount => states.Length;
+        
+        private NativeArray<int> revealedCellCount;
         NativeArray<CellState> states;
+        public int RevealedCellCount
+        {
+            get => revealedCellCount[0];
+            set => revealedCellCount[0] = value;
+        }
+        public int HiddenCellCount => CellCount - RevealedCellCount;
+        
+        public CellState this[int i]
+        {
+            get => states[i];
+            set => states[i] = value;
+        }
 
         public void Initialize(int rows, int columns)
         {
             Rows = rows;
             Columns = columns;
+            revealedCellCount = new NativeArray<int>(1, Allocator.Persistent);
             states = new NativeArray<CellState>(Rows * Columns, Allocator.Persistent);
         }
 
-        public void Dispose() => states.Dispose();
-
-        public CellState this[int i]
+        public void Dispose()
         {
-            get => states[i];
-            set => states[i] = value;
+            revealedCellCount.Dispose();
+            states.Dispose();
         }
 
         public int GetCellIndex(int row, int column) => row * Columns + column;
@@ -71,5 +84,20 @@ namespace Minecomb
             mines = mines,
             seed = Random.Range(1, int.MaxValue)
         }.Schedule().Complete();
+
+        public void Reveal(int index)
+        {
+            var job = new RevealRegionJob
+            {
+                grid = this
+            };
+            GetRowColumn(index, out job.startRowColumn.x, out job.startRowColumn.y);
+            job.Schedule().Complete();
+        }
+
+        public void RevealMinesAndMistakes() => new RevealMinesAndMistakesJob
+        {
+            grid = this
+        }.ScheduleParallel(CellCount, Columns, default).Complete();
     }
 }

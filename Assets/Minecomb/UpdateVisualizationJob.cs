@@ -14,7 +14,9 @@ namespace Minecomb
     struct UpdateVisualizationJob : IJobFor
     {
         [NativeDisableParallelForRestriction]
-        public NativeArray<float3> positions, colors;
+        public NativeArray<float3> positions, colors, ripples;
+
+        public int rippleCount;
 
         [ReadOnly]
         public Grid grid;
@@ -46,9 +48,9 @@ namespace Minecomb
             20.0f * float3(1f, 0f, 0f), // 5
             20.0f * float3(1f, 0f, 1f), // 6
 
-            30.0f * float3(1f, 0f, 1f), // mine
+            15.0f * float3(1f, 0f, 1f), // mine
             1.00f * float3(1f, 0f, 0f), // marked sure
-            50.0f * float3(1f, 0f, 1f), // marked mistaken
+            30.0f * float3(1f, 0f, 1f), // marked mistaken
             0.25f * float3(1f, 1f, 1f), // marked unsure
             0.00f * float3(0f, 0f, 0f)  // hidden
         };
@@ -66,9 +68,11 @@ namespace Minecomb
                 bool altered = (bitmap & ((ulong)1 << bi)) != 0;
 
                 float3 position = positions[blockOffset + bi];
-                position.y = altered ? 0.5f : 0f;
+                float ripples = AccumulateRipples(position);
+                position.y = (altered ? 0.5f : 0f) - 0.5f * ripples;
                 positions[blockOffset + bi] = position;
-                colors[blockOffset + bi] = altered ? coloration : 0.5f;
+                colors[blockOffset + bi] = 
+                    (altered ? coloration : 0.5f) * (1f - 0.05f * ripples);
             }
         }
 
@@ -80,6 +84,20 @@ namespace Minecomb
             state.Is(CellState.MarkedSure) ? (int)Symbol.MarkedSure :
             state.Is(CellState.MarkedUnsure) ? (int)Symbol.MarkedUnsure :
             (int)Symbol.Hidden;
-
+        
+        float AccumulateRipples (float3 position)
+        {
+            float sum = 0f;
+            for (int r = 0; r < rippleCount; r++)
+            {
+                float3 ripple = ripples[r];
+                float d = 50f * ripple.z - distance(position.xz, ripple.xy);
+                if (0 < d && d < 10f)
+                {
+                    sum += (1f - cos(d * 2f * PI / 10f)) * (1f - ripple.z * ripple.z);
+                }
+            }
+            return sum;
+        }
     }
 }

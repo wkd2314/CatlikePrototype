@@ -19,19 +19,23 @@ namespace Minecomb
         private GridVisualization visualization;
 
         int markedSureCount;
+        private bool isGameOver;
 
         private void OnEnable()
         {
             grid.Initialize(rows, columns);
             visualization.Initialize(grid, material, mesh);
+            StartNewGame();
+        }
+
+        void StartNewGame()
+        {
+            isGameOver = false;
             mines = Mathf.Min(mines, grid.CellCount);
             minesText.SetText("{0}", mines);
             markedSureCount = 0;
-
             grid.PlaceMines(mines);
-            visualization.Update();
         }
-
         private void OnDisable()
         {
             grid.Dispose();
@@ -46,14 +50,11 @@ namespace Minecomb
                 OnDisable();
                 OnEnable();
             }
-            if (PerformAction())
-            {
-                visualization.Update();
-            }
+            PerformAction();
             visualization.DrawObsolete();
         }
 
-        bool PerformAction()
+        void PerformAction()
         {
             bool revealAction = Input.GetMouseButtonDown(0);
             bool markAction = Input.GetMouseButtonDown(1);
@@ -64,18 +65,27 @@ namespace Minecomb
                 )
             )
             {
-                return revealAction ? DoRevealAction(cellIndex) : DoMarkAction(cellIndex);
+                if (isGameOver)
+                {
+                    StartNewGame();
+                }
+                if (revealAction)
+                {
+                    DoRevealAction(cellIndex);
+                }
+                else
+                {
+                    DoMarkAction(cellIndex);
+                }
             }
-
-            return false;
         }
 
-        bool DoMarkAction(int cellIndex)
+        void DoMarkAction(int cellIndex)
         {
             CellState state = grid[cellIndex];
             if (state.Is(CellState.Revealed))
             {
-                return false;
+                return;
             }
 
             if (state.IsNot(CellState.Marked))
@@ -95,19 +105,28 @@ namespace Minecomb
             }
 
             minesText.SetText("{0}", mines - markedSureCount);
-            return true;
         }
 
-        bool DoRevealAction(int cellIndex)
+        void DoRevealAction(int cellIndex)
         {
             CellState state = grid[cellIndex];
             if (state.Is(CellState.MarkedOrRevealed))
             {
-                return false;
+                return;
             }
+            grid.Reveal(cellIndex);
 
-            grid[cellIndex] = state.With(CellState.Revealed);
-            return true;
+            if (state.Is(CellState.Mine))
+            {
+                isGameOver = true;
+                minesText.SetText("FAILURE");
+                grid.RevealMinesAndMistakes();
+            }
+            else if (grid.HiddenCellCount == mines)
+            {
+                isGameOver = true;
+                minesText.SetText("SUCCESS");
+            }
         }
     }
 }
