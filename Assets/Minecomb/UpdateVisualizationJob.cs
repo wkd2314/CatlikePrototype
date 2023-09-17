@@ -27,19 +27,45 @@ namespace Minecomb
             0b00000_01110_01000_01110_01000_01110_00000, // 3
             0b00000_01010_01010_01110_01000_01000_00000, // 4
             0b00000_01110_00010_01110_01000_01110_00000, // 5
-            0b00000_01110_00010_01110_01010_01110_00000  // 6
+            0b00000_01110_00010_01110_01010_01110_00000,  // 6
+            
+            0b00000_10001_01010_00100_01010_10001_00000, // mine
+            0b00000_00000_00100_01110_00100_00000_00000, // marked sure
+            0b11111_11111_11011_10001_11011_11111_11111, // marked mistaken
+            0b00000_01110_01010_01000_00100_00000_00100, // marked unsure
+            0b00000_00000_00000_00000_00000_00000_00000  // hidden
+        };
+        
+        static readonly float3[] colorations =
+        {
+            1.00f * float3(1f, 1f, 1f), // 0
+            1.00f * float3(0f, 0f, 1f), // 1
+            2.00f * float3(0f, 1f, 1f), // 2
+            5.00f * float3(0f, 1f, 0f), // 3
+            10.0f * float3(1f, 1f, 0f), // 4
+            20.0f * float3(1f, 0f, 0f), // 5
+            20.0f * float3(1f, 0f, 1f), // 6
+
+            30.0f * float3(1f, 0f, 1f), // mine
+            1.00f * float3(1f, 0f, 0f), // marked sure
+            50.0f * float3(1f, 0f, 1f), // marked mistaken
+            0.25f * float3(1f, 1f, 1f), // marked unsure
+            0.00f * float3(0f, 0f, 0f)  // hidden
         };
 
         public void Execute (int i)
         {
             int blockOffset = i * GridVisualization.blocksPerCell;
-		
+            ulong bitmap = bitmaps[i % bitmaps.Length];
+            float3 coloration = colorations[i % colorations.Length];
             for (int bi = 0; bi < GridVisualization.blocksPerCell; bi++)
             {
+                bool altered = (bitmap & ((ulong)1 << bi)) != 0;
+                
                 float3 position = positions[blockOffset + bi];
-                position.y = bi / (float)GridVisualization.blocksPerCell;
+                position.y = altered ? 0.5f : 0f;
                 positions[blockOffset + bi] = position;
-                colors[blockOffset + bi] = position.y;
+                colors[blockOffset + bi] = altered ? coloration : 0.5f;
             }
         }
     }
