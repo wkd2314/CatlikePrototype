@@ -18,7 +18,7 @@ namespace Minecomb
 
         [ReadOnly]
         public Grid grid;
-        
+
         readonly static ulong[] bitmaps =
         {
             0b00000_01110_01010_01010_01010_01110_00000, // 0
@@ -35,7 +35,7 @@ namespace Minecomb
             0b00000_01110_01010_01000_00100_00000_00100, // marked unsure
             0b00000_00000_00000_00000_00000_00000_00000  // hidden
         };
-        
+
         static readonly float3[] colorations =
         {
             1.00f * float3(1f, 1f, 1f), // 0
@@ -53,20 +53,33 @@ namespace Minecomb
             0.00f * float3(0f, 0f, 0f)  // hidden
         };
 
-        public void Execute (int i)
+        enum Symbol { Mine = 7, MarkedSure, MarkedMistaken, MarkedUnsure, Hidden }
+
+        public void Execute(int i)
         {
             int blockOffset = i * GridVisualization.blocksPerCell;
-            ulong bitmap = bitmaps[i % bitmaps.Length];
-            float3 coloration = colorations[i % colorations.Length];
+            int symbolIndex = GetSymbolIndex(grid[i]);
+            ulong bitmap = bitmaps[symbolIndex];
+            float3 coloration = colorations[symbolIndex];
             for (int bi = 0; bi < GridVisualization.blocksPerCell; bi++)
             {
                 bool altered = (bitmap & ((ulong)1 << bi)) != 0;
-                
+
                 float3 position = positions[blockOffset + bi];
                 position.y = altered ? 0.5f : 0f;
                 positions[blockOffset + bi] = position;
                 colors[blockOffset + bi] = altered ? coloration : 0.5f;
             }
         }
+
+        static int GetSymbolIndex(CellState state) =>
+            state.Is(CellState.Revealed) ?
+                state.Is(CellState.Mine) ? (int)Symbol.Mine :
+                state.Is(CellState.MarkedSure) ? (int)Symbol.MarkedMistaken :
+                (int)state.Without(CellState.Revealed) :
+            state.Is(CellState.MarkedSure) ? (int)Symbol.MarkedSure :
+            state.Is(CellState.MarkedUnsure) ? (int)Symbol.MarkedUnsure :
+            (int)Symbol.Hidden;
+
     }
 }

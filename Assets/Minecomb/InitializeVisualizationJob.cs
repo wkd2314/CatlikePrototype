@@ -32,8 +32,8 @@ namespace Minecomb
 
         float3 GetBlockPosition(int i)
         {
-            int r = i / GridVisualization.blockColumnsPerCell;
-            int c = i - r * GridVisualization.blockColumnsPerCell;
+            int r = i / GridVisualization.columnsPerCell;
+            int c = i - r * GridVisualization.columnsPerCell;
             return float3(c, 0f, r);
         }
 
@@ -46,13 +46,13 @@ namespace Minecomb
                 0f,
                 r - (rows - 1) * 0.5f - (c & 1) * 0.5f + 0.25f
             ) * float3(
-                GridVisualization.blockColumnsPerCell + 1,
+                GridVisualization.columnsPerCell + 1,
                 0f,
-                GridVisualization.blockRowsPerCell + 1
+                GridVisualization.rowsPerCell + 1
             ) - float3(
-                GridVisualization.blockColumnsPerCell / 2,
+                GridVisualization.columnsPerCell / 2,
                 0f,
-                GridVisualization.blockRowsPerCell / 2
+                GridVisualization.rowsPerCell / 2
             );
         }
     }

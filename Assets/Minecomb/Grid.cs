@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Minecomb;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEditor.VersionControl;
 using UnityEngine;
 
@@ -63,5 +64,12 @@ namespace Minecomb
             row = index / Columns;
             column = index - row * Columns;
         }
+
+        public void PlaceMines(int mines) => new PlaceMinesJob
+        {
+            grid = this,
+            mines = mines,
+            seed = Random.Range(1, int.MaxValue)
+        }.Schedule().Complete();
     }
 }
