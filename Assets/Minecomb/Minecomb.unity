@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.1826371, g: 0.22834924, b: 0.3071469, a: 1}
+  m_IndirectSpecularColor: {r: 0.18263742, g: 0.22834961, b: 0.30714768, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -448,7 +448,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 5}
+  m_SizeDelta: {x: 58.35, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &410087039
 GameObject:
@@ -649,6 +649,7 @@ MonoBehaviour:
   minesText: {fileID: 373933894}
   rows: 8
   columns: 21
+  mines: 30
   material: {fileID: 2100000, guid: 5940bd775776702478fcbb828535ab9d, type: 2}
   mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1694094943
